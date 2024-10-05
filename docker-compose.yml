@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  db_pokemon:
+    image: postgres:13-alpine
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_DB: "pokemon"
+      POSTGRES_USER: "admin"
+      POSTGRES_PASSWORD: "12jkh3blk24"
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+    volumes:
+      - postgres:/var/lib/postgresql/data
+      - ./data/db_backups:/mnt/db_backups
+
+  app:
+    build: .
+    command: /wait-for-it.sh db_pokemon:5432 -- python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db_pokemon
+    environment:
+      - DATABASE_URL=postgres://admin:12jkh3blk24@db_pokemon:5432/pokemon
+
+volumes:
+  postgres:
